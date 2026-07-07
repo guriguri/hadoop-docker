@@ -596,7 +596,7 @@ Caused by: java.lang.NoSuchMethodError: org.apache.tez.runtime.library.common.so
 #### Caused by: java.io.IOException: ViewFs: Cannot initialize: Empty Mount table in config for viewfs://devdic/
 * 원인: viewfs 를 사용하면서 viewfs mount 정보를 core-site.xml 에서 관리 안하고 별도 파일(예: viewfs-mounttable.xml 등)으로 관리할 때 LLAP 용 tar.gz 에 core-site.xml 만 복사되면서 발생
 ![](./docs/images/LlapDaemonConfiguration.png)
-* 조치: LLAP 용 tar.gz 생성시 별도 파일(예: viewfs-mounttable.xml 등)도 포함될 수 있도록 수정 (`hive@hive:/opt/admin/hive/llap/llap_generate_with_viewfs-mounttable.sh` 를 이용해서 생성)
+* 조치: LLAP 용 tar.gz 생성시 별도 파일(예: viewfs-mounttable.xml 등)도 포함될 수 있도록 수정 (`hive@hive:/opt/admin/hive/llap/llap_generate_with_viewfs-mounttable.sh` 를 이용해서 생성)
 
 ```
 Caused by: java.io.IOException: ViewFs: Cannot initialize: Empty Mount table in config for viewfs://devdic/
