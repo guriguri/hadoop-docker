@@ -1,0 +1,15 @@
+{
+  "name": "date-service",
+  "version": "1.0.0",
+  "components" : [
+    {
+      "name": "date",
+      "number_of_containers": 2,
+      "launch_command": "echo 'START ${COMPONENT_INSTANCE_NAME} of ${SERVICE_NAME} by ${USER}'; while true; do date; sleep 60; done",
+      "resource": {
+        "cpus": 1,
+        "memory": "256"
+      }
+    }
+  ]
+}

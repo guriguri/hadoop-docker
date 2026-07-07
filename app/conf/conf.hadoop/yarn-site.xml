@@ -1,0 +1,224 @@
+<?xml version="1.0"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+
+<configuration>
+  <!-- HEAD of resourcemanager -->
+  <property>
+    <name>yarn.resourcemanager.hostname</name>
+    <value>yarn</value>
+  </property>
+
+  <!-- Filled in by the above property
+  <property>
+    <name>yarn.resourcemanager.address</name>
+    <value></value>
+    <description>default is ${yarn.resourcemanager.hostname}:8032</description>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.admin.address</name>
+    <value></value>
+    <description>default is ${yarn.resourcemanager.hostname}:8033</description>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.scheduler.address</name>
+    <value></value>
+    <description>default is ${yarn.resourcemanager.hostname}:8030</description>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.resource-tracker.address</name>
+    <value></value>
+    <description>default is ${yarn.resourcemanager.hostname}:8031</description>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.webapp.address</name>
+    <value></value>
+    <description>default is ${yarn.resourcemanager.hostname}:8088</description>
+  </property>
+  -->
+
+  <!-- HEAD of yarn scheduler setting -->
+  <property>
+    <name>yarn.resourcemanager.scheduler.class</name>
+    <value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairScheduler</value>
+  </property>
+  <property>
+    <name>yarn.scheduler.fair.allocation.file</name>
+    <value>fair-scheduler.xml</value>
+  </property>
+  <property>
+    <name>yarn.scheduler.fair.user-as-default-queue</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>yarn.scheduler.fair.allow-undeclared-pools</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>yarn.scheduler.fair.preemption</name>
+    <value>true</value>
+  </property>
+  <!-- TAIL of yarn scheduler setting -->
+
+  <!-- HEAD of CORS -->
+  <property>
+    <name>yarn.resourcemanager.webapp.cross-origin.enabled</name>
+    <value>true</value>
+    <description>Flag to enable cross-origin (CORS) support in the RM. This flag requires the CORS filter initializer to be added to the filter initializers list in core-site.xml.</description>
+  </property>
+  <!-- TAIL of CORS -->
+
+  <!-- HEAD of yarn services -->
+  <property>
+    <name>yarn.webapp.api-service.enable</name>
+    <value>true</value>
+    <description>
+      Enable services rest api on ResourceManager.
+      See: https://apache.github.io/hadoop/hadoop-yarn/hadoop-yarn-site/yarn-service/QuickStart.html
+    </description>
+  </property>
+  <property>
+    <name>yarn.webapp.ui2.enable</name>
+    <value>true</value>
+    <description>To enable RM web ui2 application.</description>
+  </property>
+  <!-- TAIL of yarn services -->
+  <!-- TAIL of resourcemanager -->
+
+  <!-- HEAD of nodemanger -->
+  <property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.aux-services.mapreduce_shuffle.class</name>
+    <value>org.apache.hadoop.mapred.ShuffleHandler</value>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.local-dirs</name>
+    <value>file:///data/hadoop/yarn/cache/nm-local-dir</value>
+    <description>List of directories to store localized files in.</description>
+  </property>
+  <property>
+    <name>yarn.nodemanager.log-dirs</name>
+    <value>file:///data/hadoop/yarn/containers</value>
+    <description>Where to store container logs.</description>
+  </property>
+  <property>
+    <name>yarn.nodemanager.remote-app-log-dir</name>
+    <value>/tmp/logs/hadoop-yarn/apps</value>
+    <description>Where to aggregate logs to.</description>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.resource.cpu-vcores</name>
+    <value>4</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.resource.memory-mb</name>
+    <value>8192</value>
+  </property>
+
+  <!-- HEAD of health -->
+  <property>
+    <name>yarn.nodemanager.disk-health-checker.max-disk-utilization-per-disk-percentage</name>
+    <value>98.5</value>
+    <description>
+      The maximum percentage of disk space utilization allowed after which a disk is marked as bad. Values can range from 0.0 to 100.0. If the value is greater than or equal to 100, the nodemanager will check for full disk. This applies to yarn.nodemanager.local-dirs and yarn.nodemanager.log-dirs. (default: 90.0)
+    </description>
+  </property>
+  <!-- TAIL of health -->
+  <!-- HEAD of nodemanger -->
+
+  <!-- HEAD of log -->
+  <property>
+    <name>yarn.log-aggregation-enable</name>
+    <value>true</value>
+    <description>
+      Whether to enable log aggregation. Log aggregation collects each container's logs and moves these logs onto a file-system, for e.g. HDFS, after the application completes. Users can configure the "yarn.nodemanager.remote-app-log-dir" and "yarn.nodemanager.remote-app-log-dir-suffix" properties to determine where these logs are moved to. Users can access the logs via the Application Timeline Server. (default: false)
+    </description>
+  </property>
+  <property>
+    <name>yarn.log-aggregation.retain-seconds</name>
+    <value>2592000</value><!-- 30 days -->
+    <description>
+      How long to keep aggregation logs before deleting them. -1 disables. Be careful set this too small and you will spam the name node. (default: -1)
+    </description>
+  </property>
+  <property>
+    <name>yarn.log-aggregation.retain-check-interval-seconds</name>
+    <value>3600</value><!-- 1 hours -->
+    <description>
+      How long to wait between aggregated log retention checks. If set to 0 or a negative value then the value is computed as one-tenth of the aggregated log retention time. Be careful set this too small and you will spam the name node. (default: -1)
+    </description>
+  </property>
+  <!-- TAIL of log -->
+
+  <!-- HEAD of yarn timeline service -->
+  <property>
+    <name>yarn.timeline-service.enabled</name>
+    <value>true</value>
+    <description>
+      In the server side it indicates whether timeline service is enabled or not. And in the client side, users can enable it to indicate whether client wants to use timeline service. If it's enabled in the client side along with security, then yarn client tries to fetch the delegation tokens for the timeline server. (default: false)
+    </description>
+  </property>
+  <property>
+    <name>yarn.timeline-service.hostname</name>
+    <value>yarn</value>
+    <description>The hostname of the timeline service web application. (default: 0.0.0.0, 각 yarn node 에서 사용)</description>
+  </property>
+  <property>
+    <name>yarn.timeline-service.bind-host</name>
+    <value>0.0.0.0</value>
+    <description>The actual address the server will bind to. If this optional address is set, the RPC and webapp servers will bind to this address and the port specified in yarn.timeline-service.address and yarn.timeline-service.webapp.address, respectively. This is most useful for making the service listen to all interfaces by setting to 0.0.0.0.</description>
+  </property>
+  <property>
+    <name>yarn.timeline-service.http-cross-origin.enabled</name>
+    <value>true</value>
+    <description>Enables cross-origin support (CORS) for web services where cross-origin web response headers are needed. For example, javascript making a web services request to the timeline server. Defaults to false.</description>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.system-metrics-publisher.enabled</name>
+    <value>true</value>
+    <description>The setting that controls whether yarn system metrics is published on the timeline server or not by RM. (default: false)</description>
+  </property>
+  <property>
+    <name>yarn.timeline-service.generic-application-history.enabled</name>
+    <value>true</value>
+    <description>Indicate to clients whether to query generic application
+  data from timeline history-service or not. If not enabled then application
+  data is queried only from Resource Manager.</description>
+  </property>
+  <property>
+    <name>yarn.timeline-service.store-class</name>
+    <value>org.apache.hadoop.yarn.server.timeline.RollingLevelDBTimelineStore</value>
+    <description>Store class name for timeline store. (default: org.apache.hadoop.yarn.server.timeline.LeveldbTimelineStore)</description>
+  </property>
+  <property>
+    <name>yarn.timeline-service.leveldb-timeline-store.path</name>
+    <value>/data/hadoop/logs</value>
+    <description>Store file name for leveldb timeline store. (default: ${hadoop.tmp.dir}/yarn/timeline)</description>
+  </property>
+  <property>
+    <name>yarn.timeline-service.leveldb-state-store.path</name>
+    <value>/data/hadoop/logs</value>
+    <description>Store file name for leveldb state store. (default: ${hadoop.tmp.dir}/yarn/timeline)</description>
+  </property>
+  <!-- TAIL of yarn timeline service -->
+</configuration>

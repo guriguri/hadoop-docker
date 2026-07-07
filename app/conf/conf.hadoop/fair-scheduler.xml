@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<allocations>
+  <!-- Default pool, used for jobs that do not specify a pool -->
+  <queue name="default">
+    <capacity>75</capacity>	  
+  </queue>
+
+  <queue name="llap">
+    <capacity>25</capacity>	  
+  </queue>
+</allocations>

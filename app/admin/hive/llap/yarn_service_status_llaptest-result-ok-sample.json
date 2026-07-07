@@ -1,0 +1,86 @@
+{
+  "name": "llaptest",
+  "id": "application_1725616236869_0021",
+  "lifetime": -1,
+  "components": [
+    {
+      "name": "llap",
+      "dependencies": [],
+      "artifact": {
+        "id": "hdfs:///user/hive/.yarn/package/LLAP/llap-11Sep2024.tar.gz",
+        "type": "TARBALL"
+      },
+      "resource": {
+        "cpus": 1,
+        "memory": "1024",
+        "additional": {}
+      },
+      "state": "STABLE",
+      "configuration": {
+        "properties": {
+          "yarn.service.rolling-log.include-pattern": ".*\\.done",
+          "yarn.component.placement.policy": "4",
+          "yarn.container.health.threshold.percent": "80",
+          "yarn.container.health.threshold.window.secs": "300",
+          "yarn.container.health.threshold.init.delay.secs": "400"
+        },
+        "env": {
+          "JAVA_HOME": "/usr/lib/jvm/java-openjdk",
+          "LLAP_DAEMON_HOME": "$PWD/lib/",
+          "LLAP_DAEMON_TMP_DIR": "$PWD/tmp/",
+          "LLAP_DAEMON_BIN_HOME": "$PWD/lib/bin/",
+          "LLAP_DAEMON_CONF_DIR": "$PWD/lib/conf/",
+          "LLAP_DAEMON_LOG_DIR": "<LOG_DIR>",
+          "LLAP_DAEMON_LOGGER": "query-routing",
+          "LLAP_DAEMON_LOG_LEVEL": "INFO",
+          "LLAP_DAEMON_HEAPSIZE": "1024",
+          "LLAP_DAEMON_PID_DIR": "$PWD/lib/app/run/",
+          "LLAP_DAEMON_LD_PATH": "/app/hadoop/lib/native",
+          "LLAP_DAEMON_OPTS": " -Dhttp.maxConnections=3 ",
+          "APP_ROOT": "<WORK_DIR>/app/install/",
+          "APP_TMP_DIR": "<WORK_DIR>/tmp/"
+        },
+        "files": []
+      },
+      "quicklinks": [],
+      "containers": [
+        {
+          "id": "container_1725616236869_0021_01_000002",
+          "ip": "192.168.48.9",
+          "hostname": "data01",
+          "state": "READY",
+          "launch_time": 1726044769947,
+          "bare_host": "data01",
+          "component_instance_name": "llap-0"
+        }
+      ],
+      "launch_command": "$LLAP_DAEMON_BIN_HOME/llapDaemon.sh start &> $LLAP_DAEMON_TMP_DIR/shell.out",
+      "number_of_containers": 1,
+      "decommissioned_instances": [],
+      "run_privileged_container": false,
+      "restart_policy": "ALWAYS"
+    }
+  ],
+  "configuration": {
+    "properties": {
+      "yarn.service.rolling-log.include-pattern": ".*\\.done",
+      "yarn.component.placement.policy": "4",
+      "yarn.container.health.threshold.percent": "80",
+      "yarn.container.health.threshold.window.secs": "300",
+      "yarn.container.health.threshold.init.delay.secs": "400"
+    },
+    "env": {},
+    "files": []
+  },
+  "state": "STABLE",
+  "quicklinks": {
+    "LLAP Daemon JMX Endpoint": "http://llap-0.llaptest.dr.who.${DOMAIN}:15002/jmx"
+  },
+  "queue": "llap",
+  "version": "1.0.0",
+  "kerberos_principal": {
+    "principal_name": "",
+    "keytab": ""
+  },
+  "dependencies": []
+}

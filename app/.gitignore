@@ -1,0 +1,13 @@
+apache-hive-*
+/hive
+/apache-maven-*
+/maven
+hadoop-*
+/hadoop
+mysql-connector-*
+/mysql-connector
+apache-tez-*
+/tez
+apache-tomcat*
+tez-ui-*
+/custom-*

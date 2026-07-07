@@ -1,0 +1,274 @@
+version: "3.5"
+
+services:
+  mysql:
+    image: mysql:8.0.33
+    container_name: mysql
+    hostname: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root.1234
+#    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - vol_mysql:/var/lib/mysql
+    restart: always
+    ports:
+      # mysql: 3306
+      - "3306:3306"
+
+  es:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.13.2
+    container_name: es
+    hostname: es
+    environment:
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      ELASTIC_USERNAME: elastic
+      ELASTIC_PASSWORD: guragura
+    volumes:
+      - vol_es:/usr/share/elasticsearch/data
+    restart: always
+    ports:
+      # es's rest: 9200
+      - "9200:9200"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.13.2
+    container_name: kibana
+    hostname: kibana
+    environment:
+      ELASTICSEARCH_HOSTS: http://es:9200
+      ELASTICSEARCH_USERNAME: elastic
+      ELASTICSEARCH_PASSWORD: guragura
+    restart: always
+    depends_on:
+      - es
+    ports:
+      # kibana: 5601
+      - "5601:5601"
+
+  zk01:
+    image: zookeeper:3.8.2
+    container_name: zk01
+    hostname: zk01
+#    environment:
+#      ZOO_MY_ID: 1
+#      ZOO_SERVERS: server.1=zk01:2888:3888;2181
+    volumes:
+      - vol_zk_data:/data
+      - vol_zk_datalog:/datalog
+      - vol_zk_logs:/logs
+      - ./app:/app
+    restart: always
+    ports:
+      # zookeeper: 2181
+      - "2181:2181"
+
+  nn:
+    image: hadoop/base
+    container_name: nn
+    hostname: nn
+    environment:
+      # for command HADOOP_HOME, HADOOP_CONF_DIR
+      HADOOP_HOME: /app/hadoop
+      HADOOP_CONF_DIR: /app/conf/conf.hadoop
+      DFS_NAMENODE_DIR: /data/hadoop/dfs/name
+      HADOOP_LOG_DIR: /data/hadoop/logs
+      ADMIN_HOME: /app/admin
+      CHECK_SERVER_PORTS: "zk01.hadoop-local:2181"
+    restart: always
+    depends_on:
+      - zk01
+    command: >
+        sh -c "chown hdfs:hdfs -R /data/hadoop/dfs;
+        /root/check_server_ports.sh &&
+        /etc/init.d/namenode.sh start;
+        tail -f /data/hadoop/logs/hadoop-hdfs-namenode-nn.out"
+    volumes:
+      # DFS_NAMENODE_DIR's value
+      - vol_nn:/data/hadoop/dfs/name
+      - /tmp/lima/logs:/data/hadoop/logs
+      - ./app:/app
+    ports:
+      # fs.defaultFS:8020
+      # dfs.namenode.http-address:50070
+      - "8020:8020"
+      - "50070:50070"
+
+  yarn:
+    image: hadoop/base
+    container_name: yarn
+    hostname: yarn
+    environment:
+      # for command HADOOP_HOME, HADOOP_CONF_DIR
+      HADOOP_HOME: /app/hadoop
+      HADOOP_CONF_DIR: /app/conf/conf.hadoop
+      HADOOP_LOG_DIR: /data/hadoop/logs
+      YARN_RESOURCEMANAGER_OPTS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5011
+      YARN_TIMELINESERVER_OPTS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5012
+      CHECK_SERVER_PORTS: "nn.hadoop-local:8020 data01.hadoop-local:9864"
+    restart: always
+    depends_on:
+      - nn
+    command: >
+        sh -c "/root/rsync_hadoop.sh;
+        /root/check_server_ports.sh &&
+        /etc/init.d/resourcemanager.sh start;
+        /etc/init.d/historyserver.sh start;
+        /etc/init.d/timelineserver.sh start;
+        cd /data/hadoop/logs/;
+        tail -f hadoop-hdfs-resourcemanager-yarn.out
+        hadoop-hdfs-historyserver-yarn.out
+        hadoop-hdfs-timelineserver-yarn.out"
+    volumes:
+      - vol_yarn:/data/hadoop
+      - /tmp/lima/logs:/data/hadoop/logs
+      - ./app:/opt
+    ports:
+      # yarn.resourcemanager.scheduler.address: 8030
+      # yarn.resourcemanager.resource-tracker.address: 8031
+      # yarn.resourcemanager.address: 8032
+      # yarn.resourcemanager.admin.address: 8033
+      # yarn.resourcemanager.webapp.address: 8088
+      # mapreduce.jobhistory.address:10020
+      # mapreduce.jobhistory.webapp.address: 19888
+      # timeline.webapp.address: 8188
+      # rm remote jvm: 5011
+      # timeline remote jvm: 5012
+      - "8030-8033:8030-8033"
+      - "8088:8088"
+      - "10020:10020"
+      - "19888:19888"
+      - "8188:8188"
+      - "5011:5011"
+      - "5012:5012"
+
+  data01:
+    image: hadoop/base
+    container_name: data01
+    hostname: data01
+    environment:
+      # for command HADOOP_HOME, HADOOP_CONF_DIR
+      HADOOP_HOME: /app/hadoop
+      HADOOP_CONF_DIR: /app/conf/conf.hadoop
+      DFS_DATANODE_DIR: /data/hadoop/dfs/data
+      HADOOP_LOG_DIR: /data/hadoop/logs
+      YARN_NODEMANAGER_OPTS: -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5021
+      CHECK_SERVER_PORTS: "nn.hadoop-local:8020"
+    restart: always
+    depends_on:
+      - nn
+    command: >
+        sh -c "chown hdfs:hdfs -R /data/hadoop/dfs;
+        /root/rsync_hadoop.sh;
+        /root/check_server_ports.sh &&
+        /etc/init.d/datanode.sh start;
+        /etc/init.d/nodemanager.sh start;
+        cd /data/hadoop/logs/;
+        tail -f hadoop-hdfs-datanode-data01.out
+        hadoop-hdfs-nodemanager-data01.out"
+    volumes:
+      # DFS_DATANODE_DIR's value
+      # /data/hadoop/yarn for nodemanager
+      - vol_dn:/data/hadoop/dfs/data
+      - /tmp/lima/logs:/data/hadoop/logs
+      - /tmp/lima/yarn:/data/hadoop/yarn
+      - ./app:/opt
+    ports:
+      # dfs.datanode.http-address:9864
+      # dfs.datanode.address: 9866
+      # dfs.datanode.ipc.address: 9867
+      # yarn.nodemanager.webapp.address: 8042
+      # yarn.app.mapreduce.am.job.client.port-range: 50200-50210
+      # hive.llap.daemon.web.port: 15002
+      # nm remote jvm: 5021
+      - "9864:9864"
+      - "9866:9866"
+      - "9867:9867"
+      - "8042:8042"
+      - "50200-50210:50200-50210"
+      - "15002:15002"
+      - "5021:5021"
+
+  hive:
+    image: hadoop/base
+    container_name: hive
+    hostname: hive
+    environment:
+      # for command HADOOP_HOME, HADOOP_CONF_DIR, HIVE_HOME, HIVE_CONF_DIR
+      # for app/admin/hive/mysql-metastore-init.sh MYSQL_HOST, MYSQL_ROOT_PASSWORD, MYSQL_HIVE_USERNAME, MYSQL_HIVE_PASSWORD
+      # need to equal hive-site.xml and MYSQL_HIVE_USERNAME, MYSQL_HIVE_PASSWORD
+      MYSQL_HOST: mysql.hadoop-local
+      MYSQL_ROOT_PASSWORD: root.1234
+      MYSQL_HIVE_USERNAME: hive
+      MYSQL_HIVE_PASSWORD: hive.1234
+      HADOOP_HOME: /app/hadoop
+      HADOOP_CONF_DIR: /app/conf/conf.hadoop
+      HIVE_HOME: /opt/hive
+      HIVE_CONF_DIR: /opt/conf/conf.hive
+      HIVE_LOG_DIR: /data/hive/logs
+      ADMIN_HOME: /opt/admin
+      CHECK_SERVER_PORTS: "nn.hadoop-local:8020 data01.hadoop-local:9864 mysql.hadoop-local:3306 yarn.hadoop-local:10200"
+      CATALINA_HOME: /app/apache-tomcat
+      CATALINA_OUT: /data/hive/logs/catalina.out
+      CATALINA_OPTS: -Dcatalina.logs=/data/hive/logs
+      LLAP_NAME: llaptest
+    restart: always
+    depends_on:
+      - yarn
+    command: >
+        sh -c "/opt/admin/hive/start_crond.sh;
+        /root/rsync_hadoop.sh;
+        /root/rsync_tomcat.sh;
+        /root/check_server_ports.sh &&
+        /etc/init.d/hive-metastore.sh start;
+        /etc/init.d/hive-server2.sh start;
+        /etc/init.d/tomcat.sh start;
+        /opt/admin/hive/llap/llap_run.sh;
+        cd /data/hive/logs/ && touch hive.log;
+        tail -f hive.log"
+    volumes:
+      - /tmp/lima/logs:/data/hive/logs
+      - ./app:/opt
+    ports:
+      # hive.metastore.uris: 9083
+      # hive.server2.thrift.port: 10000
+      # hive.server2.webui.port: 10002
+      # tez.web.ui: 11100
+      # hive server remote jvm: 5005
+      - "9083:9083"
+      - "10000:10000"
+      - "10002:10002"
+      - "11100:11100"
+      - "5005:5005"
+
+  etc01:
+    image: hadoop/base
+    container_name: etc01
+    hostname: etc01
+    environment:
+      # for hadoop eco HADOOP_HOME, HADOOP_CONF_DIR
+      HADOOP_HOME: /app/hadoop
+      HADOOP_CONF_DIR: /app/conf/conf.hadoop
+    restart: always
+    depends_on:
+      - nn
+    command: >
+        sh -c "/root/rsync_hadoop.sh;
+        while true; do date; sleep 60; done"
+    volumes:
+      - /tmp/lima/logs:/data/etc01/logs
+      - ./app:/opt
+
+volumes:
+  vol_mysql:
+  vol_zk_data:
+  vol_zk_datalog:
+  vol_zk_logs:
+  vol_es:
+  vol_nn:
+  vol_dn:
+  vol_yarn:
+
+networks:
+  default:
+    name: hadoop-local
